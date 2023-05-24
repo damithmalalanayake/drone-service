@@ -12,6 +12,14 @@ import java.util.List;
 @Entity
 public class Drone {
     @Id
+    @GeneratedValue(
+            strategy = GenerationType.IDENTITY
+    )
+    @Column(
+            name = "id",
+            unique = true,
+            nullable = false
+    )
     private Long id;
     @Column(name = "serial_number", nullable = false)
     private String serialNumber;

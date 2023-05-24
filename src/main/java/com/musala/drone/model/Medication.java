@@ -10,6 +10,14 @@ import javax.persistence.*;
 @Entity
 public class Medication {
     @Id
+    @GeneratedValue(
+            strategy = GenerationType.IDENTITY
+    )
+    @Column(
+            name = "id",
+            unique = true,
+            nullable = false
+    )
     private Long id;
     @Column(name = "name", nullable = false)
     private String name;
