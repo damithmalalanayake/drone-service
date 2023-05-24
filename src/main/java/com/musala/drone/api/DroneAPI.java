@@ -29,4 +29,9 @@ public class DroneAPI {
     public ResponseEntity<PageExchange<DroneExchange>> getAvailableDronesForLoading(@RequestParam Integer page, @RequestParam Integer pageSize) {
         return ResponseEntity.ok(droneService.getAvailableDrones(page, pageSize));
     }
+
+    @GetMapping(APIConfig.BATTERY_LEVEL + "/{droneId}")
+    public ResponseEntity<Integer> getAvailableDronesForLoading(@PathVariable("droneId") Long droneId) {
+        return ResponseEntity.ok(droneService.getBatteryLevel(droneId));
+    }
 }

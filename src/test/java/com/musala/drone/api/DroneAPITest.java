@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectWriter;
 import com.musala.drone.config.APIConfig;
 import com.musala.drone.model.exchange.DroneExchange;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -28,6 +29,7 @@ public class DroneAPITest {
     MockMvc mock;
 
     @Test
+    @Order(1)
     public void TEST_droneAPIShouldRegisterDroneAndReturn200Ok() throws Exception {
         DroneExchange droneExchange = new DroneExchange();
         droneExchange.setBatteryCapacity(40);
@@ -43,6 +45,7 @@ public class DroneAPITest {
     }
 
     @Test
+    @Order(2)
     public void TEST_droneAPIShouldThrowAnErrorWhenWeightLimitIsOver500() throws Exception {
         DroneExchange droneExchange = new DroneExchange();
         droneExchange.setBatteryCapacity(40);
@@ -58,6 +61,7 @@ public class DroneAPITest {
     }
 
     @Test
+    @Order(3)
     public void TEST_droneAPIShouldThrowAnErrorWhenBatteryCapacityIsOver100() throws Exception {
         DroneExchange droneExchange = new DroneExchange();
         droneExchange.setBatteryCapacity(102);
@@ -73,6 +77,7 @@ public class DroneAPITest {
     }
 
     @Test
+    @Order(4)
     public void TEST_availableDronesAPIShouldReturn4Drones() throws Exception {
         this.mock.perform(get(APIConfig.FINAL_URL_API_DRONE_AVAILABLE)
                         .param("page", "0")
@@ -82,5 +87,27 @@ public class DroneAPITest {
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.totalItems", Matchers.equalTo(4)));
+    }
+
+    @Test
+    @Order(5)
+    public void TEST_batteryLevelForGivenDroneIdShouldReturn50() throws Exception {
+        this.mock.perform(get(APIConfig.FINAL_URL_API_DRONE_BATTERY_LEVEL + "/4")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.equalTo(50)));
+    }
+
+    @Test
+    @Order(6)
+    public void TEST_batteryLevelForGivenInvalidDroneIdShouldReturn400WithErrorMessage() throws Exception {
+        this.mock.perform(get(APIConfig.FINAL_URL_API_DRONE_BATTERY_LEVEL + "/8")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$", Matchers.equalTo("Drone is not available for given id 8")));
     }
 }

@@ -1,6 +1,7 @@
 package com.musala.drone.service;
 
 import com.musala.drone.config.DroneStatus;
+import com.musala.drone.exception.DroneNotFoundException;
 import com.musala.drone.model.Drone;
 import com.musala.drone.model.exchange.DroneExchange;
 import com.musala.drone.model.exchange.PageExchange;
@@ -11,10 +12,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
 public class DroneService {
+    public static final String DRONE_IS_NOT_AVAILABLE_FOR_GIVEN_ID_S = "Drone is not available for given id %s";
     private final DroneRepo droneRepo;
 
     public DroneService(DroneRepo droneRepo) {
@@ -31,6 +34,14 @@ public class DroneService {
         Pageable pageable = PageRequest.of(page, size);
         Page<Drone> dronePage = droneRepo.getAllByStateIn(List.of(DroneStatus.IDLE, DroneStatus.LOADING), pageable);
         return buildDronePageExchange(page, size, dronePage);
+    }
+
+    public Integer getBatteryLevel(Long droneId) {
+        Optional<Drone> droneOptional = droneRepo.findById(droneId);
+        if (droneOptional.isEmpty()) {
+            throw new DroneNotFoundException(String.format(DRONE_IS_NOT_AVAILABLE_FOR_GIVEN_ID_S, droneId));
+        }
+        return droneOptional.get().getBatteryCapacity();
     }
 
     private PageExchange<DroneExchange> buildDronePageExchange(int page, int size, Page<Drone> dronePage) {

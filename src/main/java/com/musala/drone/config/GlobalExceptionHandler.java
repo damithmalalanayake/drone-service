@@ -1,5 +1,6 @@
 package com.musala.drone.config;
 
+import com.musala.drone.exception.DroneNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,11 @@ public class GlobalExceptionHandler {
         Map<String, List<String>> errorResponse = new HashMap<>();
         errorResponse.put("errors", errors);
         return errorResponse;
+    }
+
+    @ExceptionHandler(DroneNotFoundException.class)
+    public ResponseEntity<String> handleValidationErrors(DroneNotFoundException ex) {
+        return new ResponseEntity<String>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
 }
