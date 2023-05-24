@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.ObjectWriter;
 import com.musala.drone.config.APIConfig;
 import com.musala.drone.model.exchange.DroneExchange;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -12,8 +13,10 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
@@ -53,6 +56,7 @@ public class DroneAPITest {
                 .andDo(print())
                 .andExpect(status().isBadRequest());
     }
+
     @Test
     public void TEST_droneAPIShouldThrowAnErrorWhenBatteryCapacityIsOver100() throws Exception {
         DroneExchange droneExchange = new DroneExchange();
@@ -66,5 +70,17 @@ public class DroneAPITest {
                         .accept(MediaType.APPLICATION_JSON))
                 .andDo(print())
                 .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    public void TEST_availableDronesAPIShouldReturn4Drones() throws Exception {
+        this.mock.perform(get(APIConfig.FINAL_URL_API_DRONE_AVAILABLE)
+                        .param("page", "0")
+                        .param("pageSize", "2")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.totalItems", Matchers.equalTo(4)));
     }
 }

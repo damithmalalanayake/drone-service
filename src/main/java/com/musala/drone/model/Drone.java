@@ -30,6 +30,7 @@ public class Drone {
     @Column(name = "battery_capacity", nullable = false)
     private Integer batteryCapacity;
     @Column(name = "state", nullable = false)
+    @Enumerated(EnumType.STRING)
     private DroneStatus state;
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "drone", cascade = CascadeType.ALL)
     private List<Medication> medications;
