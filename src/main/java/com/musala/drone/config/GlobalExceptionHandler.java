@@ -31,8 +31,13 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DroneNotFoundException.class)
-    public ResponseEntity<String> handleValidationErrors(DroneNotFoundException ex) {
-        return new ResponseEntity<String>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    public ResponseEntity<String> handleDroneNotFoundException(DroneNotFoundException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<String> handleAllOtherExceptions(RuntimeException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.BAD_REQUEST);
     }
 
 }

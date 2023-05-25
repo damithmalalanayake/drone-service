@@ -1,14 +1,16 @@
 package com.musala.drone.model;
 
 import com.musala.drone.config.DroneStatus;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import javax.persistence.*;
 import java.util.List;
 
 @Getter
 @Setter
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 public class Drone {
     @Id

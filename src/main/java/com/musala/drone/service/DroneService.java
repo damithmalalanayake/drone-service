@@ -1,15 +1,19 @@
 package com.musala.drone.service;
 
 import com.musala.drone.config.DroneStatus;
-import com.musala.drone.exception.DroneNotFoundException;
+import com.musala.drone.exception.*;
 import com.musala.drone.model.Drone;
+import com.musala.drone.model.Medication;
 import com.musala.drone.model.exchange.DroneExchange;
+import com.musala.drone.model.exchange.MedicationExchange;
 import com.musala.drone.model.exchange.PageExchange;
 import com.musala.drone.repository.DroneRepo;
+import com.musala.drone.repository.MedicationRepo;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.List;
 import java.util.Optional;
@@ -18,10 +22,16 @@ import java.util.stream.Collectors;
 @Service
 public class DroneService {
     public static final String DRONE_IS_NOT_AVAILABLE_FOR_GIVEN_ID_S = "Drone is not available for given id %s";
+    public static final String ERROR_MESSAGE_DRONE_SHOULD_BE_IN_IDLE_STATE_BUT_IT_S_IN_S = "Drone should be in IDLE state, But it's in %s";
+    public static final String ERROR_MESSAGE_DRONE_BATTERY_LEVEL_SHOULD_BE_MORE_THAN_25_BUT_IT_HAS_ONLY_S = "Drone battery level should be more than 25, But it has only %s";
+    public static final String ERROR_MESSAGE_MEDICATION_IS_NOT_AVAILABLE_FOR_GIVEN_IDS = "Medication is not available for given ids";
+    public static final String ERROR_MESSAGE_WEIGHT_LIMIT_EXCEEDED_WITH_PROVIDED_MEDICATIONS = "Weight limit exceeded with provided medications!";
     private final DroneRepo droneRepo;
+    private final MedicationRepo medicationRepo;
 
-    public DroneService(DroneRepo droneRepo) {
+    public DroneService(DroneRepo droneRepo, MedicationRepo medicationRepo) {
         this.droneRepo = droneRepo;
+        this.medicationRepo = medicationRepo;
     }
 
     public DroneExchange registerDrone(DroneExchange droneExchange) {
@@ -30,9 +40,42 @@ public class DroneService {
         return buildDroneExchange(droneRepo.save(drone));
     }
 
+    // TODO: Readme - where we use Loading drone status?
+    public DroneExchange loadDroneWithMedicationItems(Long droneId, List<MedicationExchange> medicationExchange) {
+        Optional<Drone> droneOptional = droneRepo.findById(droneId);
+        if (droneOptional.isEmpty()) {
+            throw new DroneNotFoundException(String.format(DRONE_IS_NOT_AVAILABLE_FOR_GIVEN_ID_S, droneId));
+        }
+        Drone drone = droneOptional.get();
+        if (!drone.getState().equals(DroneStatus.IDLE)) {
+            throw new DroneNotInValidStateException(String.format(ERROR_MESSAGE_DRONE_SHOULD_BE_IN_IDLE_STATE_BUT_IT_S_IN_S, drone.getState()));
+        }
+        if (drone.getBatteryCapacity() < 25) {
+            throw new DroneBatteryLevelException(String.format(ERROR_MESSAGE_DRONE_BATTERY_LEVEL_SHOULD_BE_MORE_THAN_25_BUT_IT_HAS_ONLY_S, drone.getBatteryCapacity()));
+        }
+        List<Long> medicationIds = medicationExchange.parallelStream().map(MedicationExchange::getId).collect(Collectors.toList());
+        List<Medication> medicationList = medicationRepo.findAllById(medicationIds);
+
+        if (medicationIds.size() != medicationList.size()) {
+            throw new MedicationNotFoundException(ERROR_MESSAGE_MEDICATION_IS_NOT_AVAILABLE_FOR_GIVEN_IDS);
+        }
+
+        if (isWeightLimitExceeded(drone, medicationList)) {
+            throw new WeightLimitExceededException(ERROR_MESSAGE_WEIGHT_LIMIT_EXCEEDED_WITH_PROVIDED_MEDICATIONS);
+        }
+        medicationList.parallelStream().forEach(medication -> medication.setDrone(drone));
+        drone.setMedications(medicationList);
+        drone.setState(DroneStatus.LOADED);
+        return buildDroneExchange(droneRepo.save(drone));
+    }
+
+    private boolean isWeightLimitExceeded(Drone drone, List<Medication> medications) {
+        return drone.getWeightLimit() < medications.stream().mapToDouble(Medication::getWeight).sum();
+    }
+
     public PageExchange<DroneExchange> getAvailableDrones(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<Drone> dronePage = droneRepo.getAllByStateIn(List.of(DroneStatus.IDLE, DroneStatus.LOADING), pageable);
+        Page<Drone> dronePage = droneRepo.getAllByStateIn(List.of(DroneStatus.IDLE), pageable);
         return buildDronePageExchange(page, size, dronePage);
     }
 
@@ -45,36 +88,50 @@ public class DroneService {
     }
 
     private PageExchange<DroneExchange> buildDronePageExchange(int page, int size, Page<Drone> dronePage) {
-        PageExchange<DroneExchange> dronePageExchange = new PageExchange<>();
-        dronePageExchange.setPage(page);
-        dronePageExchange.setPageSize(size);
-        dronePageExchange.setItems(buildDroneExchanges(dronePage.getContent()));
-        dronePageExchange.setTotalItems(dronePage.getTotalElements());
-        dronePageExchange.setTotalPages(dronePage.getTotalPages());
-        return dronePageExchange;
+        return PageExchange.<DroneExchange>builder()
+                .page(page)
+                .pageSize(size)
+                .items(buildDroneExchanges(dronePage.getContent()))
+                .totalItems(dronePage.getTotalElements())
+                .totalPages(dronePage.getTotalPages()).build();
     }
 
     private List<DroneExchange> buildDroneExchanges(List<Drone> drones) {
-        return drones.stream().map(this::buildDroneExchange).collect(Collectors.toList());
+        return CollectionUtils.isEmpty(drones) ? null : drones.stream().map(this::buildDroneExchange).collect(Collectors.toList());
     }
 
     private Drone buildDrone(DroneExchange droneExchange) {
-        Drone drone = new Drone();
-        drone.setBatteryCapacity(droneExchange.getBatteryCapacity());
-        drone.setModel(droneExchange.getModel());
-        drone.setSerialNumber(droneExchange.getSerialNumber());
-        drone.setWeightLimit(droneExchange.getWeightLimit());
-        return drone;
+        return Drone.builder()
+                .batteryCapacity(droneExchange.getBatteryCapacity())
+                .model(droneExchange.getModel())
+                .serialNumber(droneExchange.getSerialNumber())
+                .weightLimit(droneExchange.getWeightLimit())
+                .build();
     }
 
     private DroneExchange buildDroneExchange(Drone drone) {
-        DroneExchange droneExchange = new DroneExchange();
-        droneExchange.setId(drone.getId());
-        droneExchange.setBatteryCapacity(drone.getBatteryCapacity());
-        droneExchange.setModel(drone.getModel());
-        droneExchange.setState(drone.getState());
-        droneExchange.setSerialNumber(drone.getSerialNumber());
-        droneExchange.setWeightLimit(drone.getWeightLimit());
-        return droneExchange;
+        return DroneExchange.builder()
+                .id(drone.getId())
+                .batteryCapacity(drone.getBatteryCapacity())
+                .model(drone.getModel())
+                .state(drone.getState())
+                .serialNumber(drone.getSerialNumber())
+                .weightLimit(drone.getWeightLimit())
+                .medicationExchanges(buildMedicationExchanges(drone.getMedications()))
+                .build();
+    }
+
+    private List<MedicationExchange> buildMedicationExchanges(List<Medication> medications) {
+        return CollectionUtils.isEmpty(medications) ? null : medications.stream().map(this::buildMedicationExchange).collect(Collectors.toList());
+    }
+
+    private MedicationExchange buildMedicationExchange(Medication medication) {
+        return MedicationExchange.builder()
+                .id(medication.getId())
+                .code(medication.getCode())
+                .imagePath(medication.getImagePath())
+                .weight(medication.getWeight())
+                .name(medication.getName())
+                .build();
     }
 }
