@@ -69,10 +69,6 @@ public class DroneService {
         return buildDroneExchange(droneRepo.save(drone));
     }
 
-    private boolean isWeightLimitExceeded(Drone drone, List<Medication> medications) {
-        return drone.getWeightLimit() < medications.stream().mapToDouble(Medication::getWeight).sum();
-    }
-
     public PageExchange<DroneExchange> getAvailableDrones(int page, int size) {
         Pageable pageable = PageRequest.of(page, size);
         Page<Drone> dronePage = droneRepo.getAllByStateIn(List.of(DroneStatus.IDLE), pageable);
@@ -85,6 +81,18 @@ public class DroneService {
             throw new DroneNotFoundException(String.format(DRONE_IS_NOT_AVAILABLE_FOR_GIVEN_ID_S, droneId));
         }
         return droneOptional.get().getBatteryCapacity();
+    }
+
+    public List<MedicationExchange> getAllMedicationsLoadedByDroneId(Long id) {
+        Optional<Drone> droneOptional = droneRepo.findById(id);
+        if (droneOptional.isEmpty()) {
+            throw new DroneNotFoundException(String.format(DRONE_IS_NOT_AVAILABLE_FOR_GIVEN_ID_S, id));
+        }
+        return buildMedicationExchanges(droneOptional.get().getMedications());
+    }
+
+    private boolean isWeightLimitExceeded(Drone drone, List<Medication> medications) {
+        return drone.getWeightLimit() < medications.stream().mapToDouble(Medication::getWeight).sum();
     }
 
     private PageExchange<DroneExchange> buildDronePageExchange(int page, int size, Page<Drone> dronePage) {

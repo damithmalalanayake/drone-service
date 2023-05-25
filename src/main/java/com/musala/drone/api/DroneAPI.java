@@ -41,4 +41,9 @@ public class DroneAPI {
     public ResponseEntity<DroneExchange> loadDroneWithMedications(@PathVariable("droneId") Long droneId, @RequestBody List<MedicationExchange> medicationExchanges) {
         return ResponseEntity.ok(droneService.loadDroneWithMedicationItems(droneId, medicationExchanges));
     }
+
+    @GetMapping(APIConfig.MEDICATIONS + "/{droneId}")
+    public ResponseEntity<List<MedicationExchange>> getALlMedicationsForGivenDrone(@PathVariable("droneId") Long droneId) {
+        return ResponseEntity.ok(droneService.getAllMedicationsLoadedByDroneId(droneId));
+    }
 }

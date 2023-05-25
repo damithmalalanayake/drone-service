@@ -222,4 +222,26 @@ public class DroneAPITest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$", Matchers.equalTo("Weight limit exceeded with provided medications!")));
     }
+
+    @Test
+    @Order(80)
+    public void TEST_getMedicationsLoadedIntoDroneShouldReturn400WhenDroneIsNotExistForGivenId() throws Exception {
+        this.mock.perform(get(APIConfig.FINAL_URL_API_DRONE_MEDICATIONS + "/10")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$", Matchers.equalTo("Drone is not available for given id 10")));
+    }
+
+    @Test
+    @Order(81)
+    public void TEST_getMedicationsLoadedIntoDroneShouldReturn200() throws Exception {
+        this.mock.perform(get(APIConfig.FINAL_URL_API_DRONE_MEDICATIONS + "/4")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$", Matchers.anything()));
+    }
 }
