@@ -209,10 +209,7 @@ public class DroneAPITest {
     @Test
     @Order(75)
     public void TEST_loadDroneWithMedicationsShouldReturn400WhenWeightLimitIsExceeded() throws Exception {
-        List<MedicationExchange> medicationExchanges = List.of(MedicationExchange.builder().id(1l).build(),
-                MedicationExchange.builder().id(2l).build(),
-                MedicationExchange.builder().id(3l).build(),
-                MedicationExchange.builder().id(4l).build(),
+        List<MedicationExchange> medicationExchanges = List.of(
                 MedicationExchange.builder().id(5l).build());
         this.mock.perform(put(APIConfig.FINAL_URL_API_DRONE_LOAD + "/1")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
@@ -221,6 +218,20 @@ public class DroneAPITest {
                 .andDo(print())
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$", Matchers.equalTo("Weight limit exceeded with provided medications!")));
+    }
+
+    @Test
+    @Order(76)
+    public void TEST_loadDroneWithMedicationsShouldReturn400WhenGivenMedicationAlreadyAssignedIntoAnotherDrone() throws Exception {
+        List<MedicationExchange> medicationExchanges = List.of(MedicationExchange.builder().id(1l).build(),
+                MedicationExchange.builder().id(2l).build());
+        this.mock.perform(put(APIConfig.FINAL_URL_API_DRONE_LOAD + "/1")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .content(ow.writeValueAsString(medicationExchanges))
+                        .accept(MediaType.APPLICATION_JSON))
+                .andDo(print())
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$", Matchers.equalTo("Some of the given medications are already assigned to a drone!")));
     }
 
     @Test

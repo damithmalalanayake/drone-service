@@ -26,5 +26,5 @@ INSERT INTO medication (name, weight, code, image_path)
 VALUES ('Medication 4', 25, 'JKL012', '/path/to/image4.jpg');
 
 INSERT INTO medication (name, weight, code, image_path)
-VALUES ('Medication 5', 400, 'MNO345', '/path/to/image5.jpg');
+VALUES ('Medication 5', 550, 'MNO345', '/path/to/image5.jpg');
 

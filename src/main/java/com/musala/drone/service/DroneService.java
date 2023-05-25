@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -26,6 +27,7 @@ public class DroneService {
     public static final String ERROR_MESSAGE_DRONE_BATTERY_LEVEL_SHOULD_BE_MORE_THAN_25_BUT_IT_HAS_ONLY_S = "Drone battery level should be more than 25, But it has only %s";
     public static final String ERROR_MESSAGE_MEDICATION_IS_NOT_AVAILABLE_FOR_GIVEN_IDS = "Medication is not available for given ids";
     public static final String ERROR_MESSAGE_WEIGHT_LIMIT_EXCEEDED_WITH_PROVIDED_MEDICATIONS = "Weight limit exceeded with provided medications!";
+    public static final String ERROR_MESSAGE_SOME_OF_THE_GIVEN_MEDICATIONS_ARE_ALREADY_ASSIGNED_TO_A_DRONE = "Some of the given medications are already assigned to a drone!";
     private final DroneRepo droneRepo;
     private final MedicationRepo medicationRepo;
 
@@ -58,6 +60,10 @@ public class DroneService {
 
         if (medicationIds.size() != medicationList.size()) {
             throw new MedicationNotFoundException(ERROR_MESSAGE_MEDICATION_IS_NOT_AVAILABLE_FOR_GIVEN_IDS);
+        }
+
+        if (medicationList.parallelStream().anyMatch(medication -> !Objects.isNull(medication.getDrone()))) {
+            throw new MedicationAlreadyAssignedException(ERROR_MESSAGE_SOME_OF_THE_GIVEN_MEDICATIONS_ARE_ALREADY_ASSIGNED_TO_A_DRONE);
         }
 
         if (isWeightLimitExceeded(drone, medicationList)) {
