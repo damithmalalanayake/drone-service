@@ -42,7 +42,7 @@ public class DroneAPI {
         return ResponseEntity.ok(droneService.getBatteryLevel(droneId));
     }
 
-    @PutMapping(APIConfig.LOAD + "/{droneId}")
+    @PatchMapping(APIConfig.LOAD + "/{droneId}")
     public ResponseEntity<DroneExchange> loadDroneWithMedications(@PathVariable("droneId") Long droneId, @RequestBody List<MedicationExchange> medicationExchanges) {
         log.info("REST request to load drones with medications - drone id {}, medications - {}", droneId, medicationExchanges);
         return ResponseEntity.ok(droneService.loadDroneWithMedicationItems(droneId, medicationExchanges));

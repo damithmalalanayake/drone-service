@@ -143,7 +143,7 @@ public class DroneAPITest {
                 MedicationExchange.builder().id(2l).build(),
                 MedicationExchange.builder().id(3l).build(),
                 MedicationExchange.builder().id(4l).build());
-        this.mock.perform(put(APIConfig.FINAL_URL_API_DRONE_LOAD + "/4")
+        this.mock.perform(patch(APIConfig.FINAL_URL_API_DRONE_LOAD + "/4")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(ow.writeValueAsString(medicationExchanges))
                         .accept(MediaType.APPLICATION_JSON))
@@ -155,7 +155,7 @@ public class DroneAPITest {
     @Order(71)
     public void TEST_loadDroneWithMedicationsShouldReturn400WhenGivenDroneIdIsInvalid() throws Exception {
         List<MedicationExchange> medicationExchanges = List.of(MedicationExchange.builder().id(1l).build());
-        this.mock.perform(put(APIConfig.FINAL_URL_API_DRONE_LOAD + "/10")
+        this.mock.perform(patch(APIConfig.FINAL_URL_API_DRONE_LOAD + "/10")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(ow.writeValueAsString(medicationExchanges))
                         .accept(MediaType.APPLICATION_JSON))
@@ -168,7 +168,7 @@ public class DroneAPITest {
     @Order(72)
     public void TEST_loadDroneWithMedicationsShouldReturn400WhenDroneIsInLoadingState() throws Exception {
         List<MedicationExchange> medicationExchanges = List.of(MedicationExchange.builder().id(1l).build());
-        this.mock.perform(put(APIConfig.FINAL_URL_API_DRONE_LOAD + "/2")
+        this.mock.perform(patch(APIConfig.FINAL_URL_API_DRONE_LOAD + "/2")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(ow.writeValueAsString(medicationExchanges))
                         .accept(MediaType.APPLICATION_JSON))
@@ -181,7 +181,7 @@ public class DroneAPITest {
     @Order(73)
     public void TEST_loadDroneWithMedicationsShouldReturn400WhenBatteryCapacityIsLessThan25() throws Exception {
         List<MedicationExchange> medicationExchanges = List.of(MedicationExchange.builder().id(1l).build());
-        this.mock.perform(put(APIConfig.FINAL_URL_API_DRONE_LOAD + "/3")
+        this.mock.perform(patch(APIConfig.FINAL_URL_API_DRONE_LOAD + "/3")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(ow.writeValueAsString(medicationExchanges))
                         .accept(MediaType.APPLICATION_JSON))
@@ -197,7 +197,7 @@ public class DroneAPITest {
                 MedicationExchange.builder().id(2l).build(),
                 MedicationExchange.builder().id(3l).build(),
                 MedicationExchange.builder().id(10l).build());
-        this.mock.perform(put(APIConfig.FINAL_URL_API_DRONE_LOAD + "/1")
+        this.mock.perform(patch(APIConfig.FINAL_URL_API_DRONE_LOAD + "/1")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(ow.writeValueAsString(medicationExchanges))
                         .accept(MediaType.APPLICATION_JSON))
@@ -211,7 +211,7 @@ public class DroneAPITest {
     public void TEST_loadDroneWithMedicationsShouldReturn400WhenWeightLimitIsExceeded() throws Exception {
         List<MedicationExchange> medicationExchanges = List.of(
                 MedicationExchange.builder().id(5l).build());
-        this.mock.perform(put(APIConfig.FINAL_URL_API_DRONE_LOAD + "/1")
+        this.mock.perform(patch(APIConfig.FINAL_URL_API_DRONE_LOAD + "/1")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(ow.writeValueAsString(medicationExchanges))
                         .accept(MediaType.APPLICATION_JSON))
@@ -225,7 +225,7 @@ public class DroneAPITest {
     public void TEST_loadDroneWithMedicationsShouldReturn400WhenGivenMedicationAlreadyAssignedIntoAnotherDrone() throws Exception {
         List<MedicationExchange> medicationExchanges = List.of(MedicationExchange.builder().id(1l).build(),
                 MedicationExchange.builder().id(2l).build());
-        this.mock.perform(put(APIConfig.FINAL_URL_API_DRONE_LOAD + "/1")
+        this.mock.perform(patch(APIConfig.FINAL_URL_API_DRONE_LOAD + "/1")
                         .contentType(MediaType.APPLICATION_JSON_VALUE)
                         .content(ow.writeValueAsString(medicationExchanges))
                         .accept(MediaType.APPLICATION_JSON))
