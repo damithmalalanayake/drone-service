@@ -42,7 +42,6 @@ public class DroneService {
         return buildDroneExchange(droneRepo.save(drone));
     }
 
-    // TODO: Readme - where we use Loading drone status?
     public DroneExchange loadDroneWithMedicationItems(Long droneId, List<MedicationExchange> medicationExchange) {
         Optional<Drone> droneOptional = droneRepo.findById(droneId);
         if (droneOptional.isEmpty()) {
